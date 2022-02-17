@@ -12,34 +12,12 @@ const init = async () => {
     });
 
     // register plugins to server instance
-    await server.register(require('./lib/auth/github'));
+    await server.register(require('./lib/github-auth/'));
+    await server.register(require('./lib/github-api/'));
 
-    server.route({
-        method: 'GET',
-        path: '/',
-        options: {
-            handler: (request, h) => {
-                return 'hapi coding'
-            }
-        }
-    })
-
-    server.route({
-        method: 'GET',
-        path: '/auth/github',
-        options: {
-            auth: 'github',
-            handler: (request, h) => {
-                if (request.auth.isAuthenticated) {
-                    const user = request.auth.credentials.profile
-
-                    return user;
-                }
-
-                return ('Could not authenticate with GitHub.').code(400)
-            }
-        }
-    })
+    // TODO:: double check this
+    // we probably dont need it, just use github auth
+    await server.register(require('./lib/jwt-auth/'));
 
     await server.start();
     console.log('Server running on %s', server.info.uri);
