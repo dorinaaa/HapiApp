@@ -12,6 +12,7 @@
   "dependencies": {
     "@hapi/hapi": "^20.2.1",
     "@hapi/wreck": "^17.1.0",
+    "@vue/cli": "^5.0.1",
     "bell": "^10.0.0",
     "fetch": "^1.1.0",
     "find-config": "^1.0.0",
@@ -21,6 +22,7 @@
     "nodemon": "^2.0.15"
   },
   "devDependencies": {
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "wreck": "^14.2.0"
   }
 }
