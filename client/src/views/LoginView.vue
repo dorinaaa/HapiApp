@@ -1,13 +1,11 @@
 <template>
-  <div class="login">
-    <login />
-  </div>
+  <github-login name="Github"></github-login>
 </template>
+
 <script>
-import login from "../components/auth/LoginComponent";
+import GithubLogin from "@/components/GithubLogin";
 export default {
-  components: {
-    login
-  }
-};
+  name: "LoginView",
+  components: {GithubLogin}
+}
 </script>
