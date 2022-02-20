@@ -9,7 +9,10 @@ const routes = [
     {
         path: "/",
         name: "login",
-        component: LoginView
+        component: LoginView,
+        meta: {
+            requiresAuth: false
+        }
     },
     {
         path: "/profile",
@@ -39,9 +42,18 @@ router.beforeEach((to, from, next) => {
         } else {
             next();
         }
+    } else if (!to.matched.some(record => record.meta.requiresAuth)) {
+        if (localStorage.getItem("user") != null) {
+            next({
+                path: "/profile"
+            });
+        } else {
+            next();
+        }
     } else {
         next();
     }
-});
+})
+;
 
 export default router;

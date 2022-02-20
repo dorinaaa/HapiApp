@@ -3,51 +3,74 @@
 const Hapi = require('@hapi/hapi')
 const Jwt = require('@hapi/jwt');
 const jwt = require('jsonwebtoken');
+const Wreck = require('@hapi/wreck');
 
-require('dotenv').config({ path: require('find-config')('.env') })
+require('dotenv').config({path: require('find-config')('.env')})
 
 const init = async () => {
 
     const server = Hapi.server({
         port: 3000,
-        host: 'localhost'
-       // host: '0.0.0.0'
+        host: 'localhost',
+        debug: {request: ['error']}
+        // host: '0.0.0.0'
+    });
+
+    const dbOptions = {
+        url: 'mongodb://localhost:27017/hapiApp',
+        settings: {
+            useUnifiedTopology: true
+        },
+        decorate: true
+    }
+    await server.register({
+        plugin: require('hapi-mongodb'),
+        options: dbOptions
     });
 
     await server.register(Jwt);
 
     server.auth.strategy('my_jwt_stategy', 'jwt', {
         keys: 'some_shared_secret',
-        verify: {
-            aud: 'urn:audience:test',
-            iss: 'urn:issuer:test',
-            sub: false,
-            nbf: true,
-            exp: true,
-            maxAgeSec: 14400,
-            timeSkewSec: 15
-        },
+        verify: false,
         validate: (artifacts, request, h) => {
             return {
                 isValid: true,
-                credentials: { user: artifacts.decoded.payload.user }
+                credentials: {user: artifacts.decoded.payload.user}
             };
         }
     });
 
     server.route({
-        method: 'GET',
-        path: '/testing-tokens',
+        method: 'POST',
+        path: '/auth/login',
         config: {
+            cors: {credentials: true},
             handler(request, h) {
-                const token = jwt.sign({
-                    aud: 'urn:audience:test',
-                    iss: 'urn:issuer:test',
-                    sub: false,
-                    maxAgeSec: 14400,
-                    timeSkewSec: 15
-                }, 'some_shared_secret');
-                return token;
+                // call mongo db, store user data in db or update
+                // TODO: add check if github fails or sth,
+                //  also dont go to profile page if errors
+                // get starred repos
+                const starredRepos = Wreck.get(request.payload.user.userData.starred_url.replace("{/owner}{/repo}", ""), {
+                    headers: {
+                        Authorization: 'token ' + request.payload.user.access_token,
+                        'User-Agent': 'request'
+                    }
+                }).then(repos => {
+                    console.log(repos.toString())
+                });
+                let userData = request.payload.user.userData
+                userData["starred_repos"] = starredRepos.toString()
+                const user = request.mongo.db.collection('users').updateOne(
+                    {id: userData.id},
+                    {$set : userData},
+                    {upsert: true}
+                )
+
+                // instead of request payload store only the user id
+                const token = jwt.sign(userData.id, 'some_shared_secret');
+                const data = {token: token}
+                return h.response(data)
             },
         }
     });
@@ -55,22 +78,18 @@ const init = async () => {
     server.route({
         method: 'GET',
         path: '/secret',
-        auth: {
-            strategy: 'my_jwt_stategy',
-        },
         config: {
             handler(request, h) {
                 return 'secret';
-            }
-        }
+            },
+            auth: {
+                strategy: 'my_jwt_stategy',
+            },
+        },
     });
 
     // register plugins to server instance
-    // await server.register(require('./lib/github-auth/'));
-    // await server.register(require('./lib/github-api/'));
-
-    // TODO:: double check this
-    // we probably dont need it, just use github auth
+    await server.register(require('./lib/github-api/'));
     // await server.register(require('./lib/jwt-auth/'));
 
     await server.start();
