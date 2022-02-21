@@ -4,23 +4,16 @@
       <a href="#" class="active"><i class="fa fa-user"></i> Profile</a>
       <div class="sub-nav active">
         <div class="html about-me">
-          <div class="photo" style="background: url(https://s.gravatar.com/avatar/24a65a47147cddf5b270bc9f609ffa2a?s=90) no-repeat center;">
-          </div>
-          <h4>@khadkamhn</h4>
-          <p>Hi, It's me Mohan. I'm a web and graphics designer. Designing is my passion and I have been working on
-            various designing projects.</p>
+          <div class="photo" :style="user.avatar_url"></div>
+          <h4>{{ user.login }}</h4>
+          <h6>{{ user.name }}</h6>
+          <p>{{ user.bio }}</p>
         </div>
       </div>
-      <a href="#"><i class="fa fa-envelope"></i> Messages <span class="pull-right alert-numb">21</span></a>
-      <div class="sub-nav">
-        <a href="#">Inbox <span class="pull-right alert-numb">11</span></a>
-        <a href="#">Important <span class="pull-right alert-numb">10</span></a>
-        <a href="#">Sent</a>
-        <a href="#">Draft</a>
-        <a href="#">Trash</a>
-        <a href="#">All messages</a>
-        <starred-repos v-if="showStarredRepos" :starred-repos="starredRepos"></starred-repos>
-      </div>
+      <a @click="toggleStarredRepos" href="#"><i class="fa fa-envelope"></i>
+        Pull Starred Repos <span class="pull-right alert-numb">{{ user.starred_repos_count }}</span>
+      </a>
+      <starred-repos v-if="showStarredRepos" :starred-repos="starredRepos"></starred-repos>
       <a style="background: rgb(122 74 82); color: #cbc1b3; cursor:pointer; text-align: center"
          @click="logUserOut">
         <i class="fa fa-sign-out"></i> Logout
@@ -28,12 +21,6 @@
     </div>
   </div>
 
-  <!--  <div class="row">-->
-  <!--    <div class="col-12">-->
-  <!--      Name : {{ user.username }}-->
-  <!--      <button @click="toggleStarredRepos">Pull starred repos</button>-->
-  <!--    </div>-->
-  <!--  </div>-->
 </template>
 
 <script>
@@ -46,6 +33,8 @@ export default {
   data() {
     return {
       user: {},
+      userId: 0,
+      token: '',
       showStarredRepos: false,
       starredRepos: {}
     };
@@ -53,13 +42,18 @@ export default {
   methods: {
     getUserDetails() {
       // get token from localstorage
-      let token = localStorage.getItem("user");
+      this.token = localStorage.getItem("user");
       try {
         //decode token here and attach to the user object
-        this.user = VueJwtDecode.decode(token);
+        this.userId = VueJwtDecode.decode(this.token).userId;
+        // get profile data from api, send this.token to the api
+        this.getFromAPI("/profile/" + this.userId, this.token)
+            .then(data => {
+              this.user = data
+              this.user.avatar_url = 'background: url(' + data.avatar_url + ') no-repeat center;'
+            });
       } catch (error) {
-        // return error in production env
-        console.log(error, 'error from decoding token')
+        console.log(error, 'error')
       }
     },
     logUserOut() {
@@ -67,11 +61,15 @@ export default {
       this.$router.push("/");
     },
     toggleStarredRepos() {
-      // call api and get starred
-      this.starredRepos = {
-        'dorina': '3'
+      try {
+        this.getFromAPI("/starred-repos/" + this.userId, this.token)
+            .then(data => {
+              this.starredRepos = data
+            });
+        this.showStarredRepos = !this.showStarredRepos
+      } catch (error) {
+        console.log(error)
       }
-      this.showStarredRepos = !this.showStarredRepos
     }
   },
   created() {

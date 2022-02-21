@@ -32,17 +32,12 @@ export default {
       window.OAuth.popup('github').then((github) => {
         github.get('/user').then(userData => {
           // call api and send the login data, a jwt will be returned
-          fetch("http://localhost:3000/auth/login",
-              {
-                method: "post",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                  "user":
-                      {
-                        "access_token": github.access_token,
-                        "userData": userData
-                      }
-                })
+          this.postDataToAPI("/auth/login", {
+            "user":
+                {
+                  "access_token": github.access_token,
+                  "userData": userData
+                }
               })
               .then(response => response.json())
               .then(data => {
@@ -52,7 +47,6 @@ export default {
                 this.$router.push("/profile");
               });
         });
-
       });
     }
   }

@@ -2,24 +2,19 @@ const Routes = require('./routes')
 
 async function register(server, options) {
     await server.register([
-        require('hapi-auth-jwt2')
+        require('@hapi/jwt')
     ])
 
-    const validate = async function (decoded, request, h) {
-
-        return {isValid: true}
-        // do your checks to see if the person is valid
-        // if (!people[decoded.id]) {
-        //     return { isValid: false };
-        // }
-        // else {
-        //     return { isValid: true };
-        // }
-    }
-    server.auth.strategy('jwt', 'jwt',
-        {
-            key: 'NeverShareYourSecret', validate
-        });
+    server.auth.strategy('jwt_strategy', 'jwt', {
+        keys: 'some_shared_secret',
+        verify: false,
+        validate: (artifacts, request, h) => {
+            return {
+                isValid: true,
+                credentials: {user: artifacts.decoded.payload.user}
+            };
+        }
+    });
 
     server.route(Routes)
 }

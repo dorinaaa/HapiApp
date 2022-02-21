@@ -4,8 +4,8 @@ const Handler = require('./handler')
 
 const Routes = [
     {
-        method: 'GET',
-        path: '/',
+        method: 'post',
+        path: '/auth/login',
         config: Handler.index
     }
 ]

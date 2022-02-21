@@ -6,6 +6,7 @@ import VueResource from 'vue-resource';
 Vue.config.productionTip = false;
 
 Vue.use(VueResource);
+require('../src/mixins/API')
 new Vue({
     router,
     render: h => h(App)
