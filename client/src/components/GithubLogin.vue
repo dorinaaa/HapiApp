@@ -3,7 +3,7 @@
     <div class="row d-flex justify-content-center mt-5">
       <div class="col-12 col-md-8 col-lg-6 col-xl-5">
         <div class="card py-3 px-2">
-          <p class="text-center mb-3 mt-2">Please Sign In using {{ name }}</p>
+          <p class="text-center mb-3 mt-2" style="color: wheat">Please Sign In using {{ name }}</p>
           <div class="row mx-auto ">
             <div class="col-4">
               <a @click="signin" class="btn btn-social btn-github">
@@ -11,6 +11,9 @@
               </a>
             </div>
           </div>
+        </div>
+        <div class="row mt-5 ml-5 pl-5" v-if="showError" style="color: #6f1e1e">
+          An error occurred! Try again.
         </div>
       </div>
     </div>
@@ -20,7 +23,12 @@
 <script>
 export default {
   props: {
-    name: String
+    name: String,
+  },
+  data() {
+    return {
+      showError: false
+    };
   },
   methods: {
     signin() {
@@ -38,13 +46,17 @@ export default {
                   "access_token": github.access_token,
                   "userData": userData
                 }
-              })
+          })
               .then(response => response.json())
               .then(data => {
-                let token = data.token;
-                localStorage.setItem("user", token);
-                // navigate to profile page
-                this.$router.push("/profile");
+                if (Object.keys(data).length !== 0) {
+                  let token = data.token;
+                  localStorage.setItem("user", token);
+                  // navigate to profile page
+                  this.$router.push("/profile");
+                } else {
+                  this.showError = !this.showError
+                }
               });
         });
       });
