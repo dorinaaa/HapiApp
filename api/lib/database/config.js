@@ -1,5 +1,5 @@
 const options = {
-    url: 'mongodb://localhost:27017/hapiApp',
+    url: process.env.MONGODB_CONNECTION_STRING,
     settings: {
         useUnifiedTopology: true
     },

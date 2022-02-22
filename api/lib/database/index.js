@@ -5,16 +5,11 @@ async function register(server, options) {
         plugin: require('hapi-mongodb'),
         options: dbOptions,
     });
-
-    server.method('updateRecord', (search, update) => {
-
-    })
-
 }
 
 exports.plugin = {
     register,
-    name: 'database-connection',
+    name: 'database',
     version: '1.0.0',
     once: true
 }

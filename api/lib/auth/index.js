@@ -1,4 +1,5 @@
 const Routes = require('./routes')
+const configurations = require('./config')
 
 async function register(server, options) {
     await server.register([
@@ -6,7 +7,7 @@ async function register(server, options) {
     ])
 
     server.auth.strategy('jwt_strategy', 'jwt', {
-        keys: 'some_shared_secret',
+        keys: configurations.shared_secret,
         verify: false,
         validate: (artifacts, request, h) => {
             return {

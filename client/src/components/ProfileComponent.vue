@@ -11,7 +11,7 @@
         </div>
       </div>
       <a @click="toggleStarredRepos" href="#"><i class="fa fa-envelope"></i>
-        Pull Starred Repos <span class="pull-right alert-numb">{{ user.starred_repos_count }}</span>
+        Pull Starred Repos
       </a>
       <starred-repos v-if="showStarredRepos" :starred-repos="starredRepos"></starred-repos>
       <a style="background: rgb(122 74 82); color: #cbc1b3; cursor:pointer; text-align: center"
@@ -62,10 +62,13 @@ export default {
     },
     toggleStarredRepos() {
       try {
-        this.getFromAPI("/starred-repos/" + this.userId, this.token)
-            .then(data => {
-              this.starredRepos = data
-            });
+        if (!this.showStarredRepos) {
+          this.getFromAPI("/starred-repos/" + this.userId, this.token)
+              .then(data => {
+                this.starredRepos = data
+              });
+        }
+
         this.showStarredRepos = !this.showStarredRepos
       } catch (error) {
         console.log(error)
